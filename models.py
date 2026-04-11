@@ -123,8 +123,8 @@ def get_model_config(model_name, args):
     if model_name == 'Tacotron2':
         model_config = dict(
             # --- NEW: Multi-Speaker Parameters ---
-            n_speakers=args.n_speakers,
-            speakers_embedding_dim=args.speakers_embedding_dim,
+            #n_speakers=args.n_speakers,
+            #speakers_embedding_dim=args.speakers_embedding_dim,
             # -------------------------------------
             # --- ADD THESE ---
             n_noise_types=args.n_noise_types,
