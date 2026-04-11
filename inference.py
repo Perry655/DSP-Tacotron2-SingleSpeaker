@@ -49,17 +49,17 @@ def parse_args(parser):
     """
     parser.add_argument('-i', '--input', type=str, required=True,
                         help='full path to the input text (phareses separated by new line)')
-    parser.add_argument('--speaker-id', type=int, default=0, # Bago ito
-                        help='ID of the speaker to use for inference')
+    #parser.add_argument('--speaker-id', type=int, default=0, # Bago ito
+    #                    help='ID of the speaker to use for inference')
     # --- NEW: ADDED N-SPEAKERS HERE ---
-    parser.add_argument('--n-speakers', type=int, default=1,
-                        help='Number of speakers in the model')
+    #parser.add_argument('--n-speakers', type=int, default=1,
+    #                    help='Number of speakers in the model')
     # ----------------------------------
     parser.add_argument('--gate-threshold', type=float, default=0.5,
                         help='Lower this to 0.2 or 0.1 if model keeps mumbling at the end')
     # --- ADDED THIS ---
-    parser.add_argument('--speakers-embedding-dim', type=int, default=256,
-                        help='Dimension size of the speaker embedding layer')
+    #parser.add_argument('--speakers-embedding-dim', type=int, default=256,
+    #                    help='Dimension size of the speaker embedding layer')
     # ------------------
     # --- ADD THIS ---
     parser.add_argument('--noise-id', type=int, default=0,
@@ -277,7 +277,7 @@ def main():
         input_lengths = torch.IntTensor([sequence.size(1)]).long()
         # --- ADD THIS ---
         # Create a dummy speaker ID (0)
-        dummy_speaker_id = torch.tensor([0]).long()
+        #dummy_speaker_id = torch.tensor([0]).long()
         # ----------------
         # --- ADD THIS ---
         dummy_noise_id = torch.tensor([0]).long() 
@@ -285,12 +285,12 @@ def main():
         if not args.cpu:
             sequence = sequence.cuda()
             input_lengths = input_lengths.cuda()
-            dummy_speaker_id = dummy_speaker_id.cuda() # Move to GPU
+            #dummy_speaker_id = dummy_speaker_id.cuda() # Move to GPU
             dummy_noise_id = dummy_noise_id.cuda() # Move to GPU
             
         for i in range(3):
             with torch.no_grad():
-                mel, mel_lengths, _ = jitted_tacotron2(sequence, input_lengths, dummy_speaker_id, dummy_noise_id)
+                mel, mel_lengths, _ = jitted_tacotron2(sequence, input_lengths, dummy_noise_id)
                 
                 # --- CONDITIONALLY WARMUP ---
                 if args.waveglow is not None:
@@ -307,17 +307,17 @@ def main():
     # Create the speaker tensor for the whole batch
     # We repeat the speaker_id for every sentence in the input text file
     batch_size = sequences_padded.size(0)
-    speaker_ids = torch.tensor([args.speaker_id] * batch_size).long()
+    #speaker_ids = torch.tensor([args.speaker_id] * batch_size).long()
     # --- ADD THIS ---
     noise_ids = torch.tensor([args.noise_id] * batch_size).long()
     # ----------------
 
     if not args.cpu:
-        speaker_ids = speaker_ids.cuda()
+        #speaker_ids = speaker_ids.cuda()
         noise_ids = noise_ids.cuda() # <--- ADD THIS
 
     with torch.no_grad(), MeasureTime(measurements, "tacotron2_time", args.cpu):
-        mel, mel_lengths, alignments = jitted_tacotron2(sequences_padded, input_lengths, speaker_ids, noise_ids)
+        mel, mel_lengths, alignments = jitted_tacotron2(sequences_padded, input_lengths, noise_ids)
 
     # --- CONDITIONALLY RUN VOCODER INFERENCE ---
     if args.waveglow is not None:
