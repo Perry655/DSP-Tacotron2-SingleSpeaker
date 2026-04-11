@@ -74,9 +74,9 @@ def gen_text(use_synthetic_data):
                                         batch_size).cuda().long()
         # --- ADD THIS ---
         # Create random speaker ID (e.g., between 0 and 9)
-        speaker_ids = torch.randint(low=0, high=10, 
-                                    size=(batch_size,), 
-                                    dtype=torch.long).cuda()
+        #speaker_ids = torch.randint(low=0, high=10, 
+        #                            size=(batch_size,), 
+        #                            dtype=torch.long).cuda()
         # ----------------
         # --- ADD THIS: Random Noise ID ---
         noise_ids = torch.randint(low=0, high=3, 
@@ -90,13 +90,13 @@ def gen_text(use_synthetic_data):
 
         # --- ADD THIS ---
         # Create a fixed speaker ID (0) for the real text
-        speaker_ids = torch.tensor([0] * batch_size, dtype=torch.long).cuda()
+        #speaker_ids = torch.tensor([0] * batch_size, dtype=torch.long).cuda()
         # ----------------
         # --- ADD THIS: Default Noise ID (Clean) ---
         noise_ids = torch.tensor([0] * batch_size, dtype=torch.long).cuda()
         # ------------------------------------------
 
-    return (text_padded, input_lengths, speaker_ids)
+    return (text_padded, input_lengths)
 
 
 def gen_mel(use_synthetic_data, n_mel_channels, fp16):
@@ -161,10 +161,10 @@ def main():
         measurements = {}
 
         if args.model_name == 'Tacotron2':
-            text_padded, input_lengths, speaker_ids, noise_ids = gen_text(args.synth_data)
+            text_padded, input_lengths, noise_ids = gen_text(args.synth_data)
 
             with torch.no_grad(), MeasureTime(measurements, "inference_time"):
-                mels, _, _ = model(text_padded, input_lengths, speaker_ids, noise_ids)
+                mels, _, _ = model(text_padded, input_lengths, noise_ids)
             num_items = mels.size(0)*mels.size(2)
 
         if args.model_name == 'WaveGlow':
