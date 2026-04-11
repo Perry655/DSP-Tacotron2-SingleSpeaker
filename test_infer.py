@@ -79,8 +79,8 @@ def parse_args(parser):
     parser.add_argument('-bs', '--batch-size', type=int, default=1,
                         help='Batch size')
     # --- ADD THIS ---
-    parser.add_argument('--speaker-id', type=int, default=0,
-                        help='Speaker ID for multi-speaker inference')
+    #parser.add_argument('--speaker-id', type=int, default=0,
+    #                    help='Speaker ID for multi-speaker inference')
     # ----------------
     # --- ADD THIS ---
     parser.add_argument('--noise-id', type=int, default=0,
@@ -183,10 +183,10 @@ def main():
         
         # --- ADD THIS BLOCK ---
             # Create a tensor of speaker IDs matching the batch size
-            speaker_ids = torch.LongTensor([args.speaker_id] * sequences_padded.size(0))
+            #speaker_ids = torch.LongTensor([args.speaker_id] * sequences_padded.size(0))
             noise_ids = torch.LongTensor([args.noise_id] * sequences_padded.size(0)) # <--- NEW
             if not args.cpu:
-                speaker_ids = speaker_ids.cuda()
+            #    speaker_ids = speaker_ids.cuda()
                 noise_ids = noise_ids.cuda() # <--- NEW
             # ----------------------
 
@@ -194,7 +194,7 @@ def main():
             with MeasureTime(measurements, "latency", args.cpu):
                 with MeasureTime(measurements, "tacotron2_latency", args.cpu):
                     # mel, mel_lengths, _ = tacotron2.infer(sequences_padded, input_lengths)
-                    mel, mel_lengths, _ = tacotron2.infer(sequences_padded, input_lengths, speaker_ids, noise_ids)
+                    mel, mel_lengths, _ = tacotron2.infer(sequences_padded, input_lengths, noise_ids)
 
                 with MeasureTime(measurements, "waveglow_latency", args.cpu):#change vocoder
                     audios = waveglow.infer(mel, sigma=args.sigma_infer)#change vocoder
