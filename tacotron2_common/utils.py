@@ -69,12 +69,12 @@ def load_filepaths_and_text(dataset_path, filename, split="|"):
             
             path = os.path.join(root, parts[0])
             text = parts[1]
-            speaker_id = parts[2]
-            noise_id = parts[3]
+            #speaker_id = parts[2]
+            noise_id = parts[2]
             
             # --- CRITICAL FIX IS HERE ---
             # You must return ALL 4 items so data_function.py can read them
-            return path, text, speaker_id, noise_id 
+            return path, text, noise_id 
             
         filepaths_and_text = [split_line(dataset_path, line) for line in f]
     return filepaths_and_text
