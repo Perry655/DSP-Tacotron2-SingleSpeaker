@@ -112,8 +112,7 @@ def nvidia_tacotron2(pretrained=False, **kwargs):
                   'max_decoder_steps': 1000, 'gate_threshold': 0.5,
                   'p_attention_dropout': 0.1, 'p_decoder_dropout': 0.1,
                   'postnet_embedding_dim': 512, 'postnet_kernel_size': 5,
-                  'postnet_n_convolutions': 5, 'decoder_no_early_stopping': False,
-                  'n_speakers':2, 'speakers_embedding_dim': 64}
+                  'postnet_n_convolutions': 5, 'decoder_no_early_stopping': False}
         for k,v in kwargs.items():
             if k in config.keys():
                 config[k] = v
