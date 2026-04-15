@@ -707,7 +707,7 @@ class Tacotron2(nn.Module):
             output_lengths)
 
 
-    def infer(self, inputs, input_lengths, speaker_id=None, noise_id=None):
+    def infer(self, inputs, input_lengths, noise_id=None):
         # --- CHANGED: Add speaker_id argument ---
         #if speaker_id is None:
         #     raise ValueError("Inference requires a speaker_id")
