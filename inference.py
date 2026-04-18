@@ -153,6 +153,11 @@ def load_and_setup_model(model_name, parser, checkpoint, fp16_run, cpu_run,
         if checkpoint_from_distributed(state_dict):
             state_dict = unwrap_distributed(state_dict)
 
+        if model_name == "HiFi-GAN":
+            # We remove weight norm BEFORE loading weights because 
+            # the checkpoint weights are already collapsed/fused.
+            model.remove_weight_norm()
+        
         model.load_state_dict(state_dict)
 
     if model_name == "WaveGlow":# change vocoder
