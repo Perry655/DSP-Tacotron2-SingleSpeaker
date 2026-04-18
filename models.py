@@ -178,14 +178,22 @@ def get_model_config(model_name, args):
         return model_config
     # --- ADD THIS ---
     elif model_name == 'HiFi-GAN':
-        # Read the config.json file that comes with HiFi-GAN
-        with open(args.hifigan_config, 'r') as f:
-            data = f.read()
-        json_config = json.loads(data)
-        
-        # Convert dictionary to AttrDict so the model can access parameters 
-        # like model_config.resblock instead of model_config['resblock']
-        model_config = AttrDict(json_config)
+            # Check if a JSON config was provided via --hifigan-config
+            if args.hifigan_config is not None:
+                import json
+                with open(args.hifigan_config, 'r') as f:
+                    data = f.read()
+                model_config = json.loads(data)
+            else:
+                # Manually map the arguments into the config dictionary
+                model_config = dict(
+                    resblock=args.resblock,
+                    upsample_rates=args.upsample_rates,
+                    upsample_kernel_sizes=args.upsample_kernel_sizes,
+                    upsample_initial_channel=args.upsample_initial_channel,
+                    resblock_kernel_sizes=args.resblock_kernel_sizes,
+                    resblock_dilation_sizes=args.resblock_dilation_sizes
+                )
         return model_config
     # ----------------
     else:
