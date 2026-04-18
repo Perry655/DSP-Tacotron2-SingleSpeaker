@@ -52,7 +52,7 @@ def model_parser(model_name, parser, add_help=False):
         from waveglow.arg_parser import waveglow_parser
         return waveglow_parser(parser, add_help)
     if model_name == 'HiFi-GAN':
-        from hifigan.arg_parser import hifigan_parser
+        from hifigan.arg_parser import parse_hifigan_args
         return parse_hifigan_args(parser, add_help)
     else:
         raise NotImplementedError(model_name)
