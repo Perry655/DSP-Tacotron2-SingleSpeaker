@@ -194,7 +194,7 @@ def get_model_config(model_name, args):
                     resblock_kernel_sizes=args.resblock_kernel_sizes,
                     resblock_dilation_sizes=args.resblock_dilation_sizes
                 )
-        return model_config
+            return model_config
     # ----------------
     else:
         raise NotImplementedError(model_name)
