@@ -98,13 +98,10 @@ def get_model(model_name, model_config, cpu_run,
     # --- ADD THIS ---
     elif model_name == 'HiFi-GAN':
         # HiFi-GAN expects an 'AttrDict' of its config parameters
+        if not isinstance(model_config, AttrDict):
+            model_config = AttrDict(model_config)
+            
         model = HiFiGAN(model_config)
-        
-        # HiFi-GAN doesn't need a custom infer method, its forward pass 
-        # is already designed to output audio. But we can remove weight 
-        # norm for faster inference!
-        if forward_is_infer:
-            model.remove_weight_norm()
     # ----------------
 
     else:
