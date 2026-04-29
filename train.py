@@ -43,6 +43,7 @@ import models
 import loss_functions
 import data_functions
 from tacotron2_common.utils import ParseFromConfigFile
+from tacotron2.entrypoints import checkpoint_from_distributed, unwrap_distributed
 
 import dllogger as DLLogger
 from dllogger import StdOutBackend, JSONStreamBackend, Verbosity
@@ -79,6 +80,10 @@ def parse_args(parser):
                           help='Number of epochs per checkpoint')
     training.add_argument('--checkpoint-path', type=str, default='',
                           help='Checkpoint path to resume training')
+    training.add_argument('--pretrained-path', type=str, default='',
+                          help='Path to a pretrained checkpoint to fine-tune from. '
+                           'Loads model weights only with strict=False; does NOT '
+                           'load optimizer/scaler/epoch state.')
     training.add_argument('--resume-from-last', action='store_true',
                           help='Resumes training from the last checkpoint; uses the directory provided with \'--output\' option to search for the checkpoint \"checkpoint_<model_name>_last.pt\"')
     training.add_argument('--dynamic-loss-scaling', type=bool, default=True,
@@ -247,6 +252,14 @@ def get_last_checkpoint_filename(output_dir, model_name):
         print("No last checkpoint available - starting from epoch 0 ")
         return ""
 
+def load_pretrained(model, filepath):
+    checkpoint = torch.load(filepath, map_location='cpu')
+    state_dict = checkpoint['state_dict'] if 'state_dict' in checkpoint else checkpoint
+    if checkpoint_from_distributed(state_dict):
+        state_dict = unwrap_distributed(state_dict)
+    result = model.load_state_dict(state_dict, strict=False)
+    print("[pretrained] Missing keys (kept at init):", result.missing_keys)
+    print("[pretrained] Unexpected keys (ignored):", result.unexpected_keys)
 
 def load_checkpoint(model, optimizer, scaler, epoch, filepath, local_rank):
 
@@ -428,7 +441,9 @@ def main():
     if args.checkpoint_path != "":
         model_config = load_checkpoint(model, optimizer, scaler, start_epoch,
                                        args.checkpoint_path, local_rank)
-
+    elif args.pretrained_path != "":
+        load_pretrained(model, args.pretrained_path)
+        
     start_epoch = start_epoch[0]
 
     criterion = loss_functions.get_loss_function(model_name, sigma)
