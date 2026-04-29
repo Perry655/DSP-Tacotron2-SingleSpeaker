@@ -656,7 +656,7 @@ class Tacotron2(nn.Module):
     def parse_batch(self, batch):
         # --- CHANGED: Unpack speaker_ids ---
         text_padded, input_lengths, mel_padded, gate_padded, \
-            output_lengths,noise_ids = batch
+            output_lengths,len_x, noise_ids = batch
             
         text_padded = to_gpu(text_padded).long()
         input_lengths = to_gpu(input_lengths).long()
