@@ -623,7 +623,9 @@ class Tacotron2(nn.Module):
         #torch.nn.init.xavier_uniform_(self.speakers_embedding.weight)
         # ------------------------------
         # --- NEW: Noise Embedding ---
-        self.noise_embedding = nn.Embedding(n_noise_types, noise_embedding_dim)
+        #self.noise_embedding = nn.Embedding(n_noise_types, noise_embedding_dim)
+        self.noise_embedding = nn.Embedding(n_noise_types, encoder_embedding_dim)
+        nn.init.zeros_(self.noise_embedding.weight)
         torch.nn.init.xavier_uniform_(self.noise_embedding.weight)
         # ----------------------------
 
@@ -633,12 +635,13 @@ class Tacotron2(nn.Module):
         
         # --- CHANGED: Decoder Input Dim ---
         # The decoder now receives (Text Vector + Speaker Vector)
-        decoder_input_dim = encoder_embedding_dim + noise_embedding_dim
+        #decoder_input_dim = encoder_embedding_dim + noise_embedding_dim
+        decoder_input_dim = encoder_embedding_dim
         # ----------------------------------
 
         self.decoder = Decoder(n_mel_channels, n_frames_per_step,
-                               decoder_input_dim, attention_dim, # <--- Pass combined dim here
-                               attention_location_n_filters,
+                               encoder_embedding_dim, attention_dim, # <--- Pass combined dim here
+                               attention_location_n_filters, # encoder_embedding_dim was decoder_input_dim before
                                attention_location_kernel_size,
                                attention_rnn_dim, decoder_rnn_dim,
                                prenet_dim, max_decoder_steps,
@@ -689,15 +692,17 @@ class Tacotron2(nn.Module):
         #speaker_vec = self.speakers_embedding(speaker_ids)
         #speaker_vec_expanded = speaker_vec.unsqueeze(1).expand(-1, max_len, -1)
         # 2. Noise Vector
-        noise_vec = self.noise_embedding(noise_ids) # <--- NEW
-        noise_vec = noise_vec.unsqueeze(1).expand(-1, max_len, -1) # <--- NEW
+        #noise_vec = self.noise_embedding(noise_ids) # <--- NEW
+        noise_vec = self.noise_embedding(noise_ids).unsqueeze(1)
+        #noise_vec = noise_vec.unsqueeze(1).expand(-1, max_len, -1) # <--- NEW
         
         # Concatenate: [Batch, Time, Enc_Dim] + [Batch, Time, Spk_Dim]
-        encoder_outputs_combined = torch.cat((encoder_outputs, noise_vec), dim=-1)
+        #encoder_outputs_combined = torch.cat((encoder_outputs, noise_vec), dim=-1)
+        encoder_outputs = encoder_outputs + noise_vec
         # -------------------------------------
 
         mel_outputs, gate_outputs, alignments = self.decoder(
-            encoder_outputs_combined, targets, memory_lengths=input_lengths)
+            encoder_outputs, targets, memory_lengths=input_lengths)
 
         mel_outputs_postnet = self.postnet(mel_outputs)
         mel_outputs_postnet = mel_outputs + mel_outputs_postnet
@@ -729,14 +734,13 @@ class Tacotron2(nn.Module):
 
         if isinstance(noise_id, int):
             noise_id = torch.tensor([noise_id] * inputs.size(0)).long().to(inputs.device)
-        noise_vec = self.noise_embedding(noise_id)
-        noise_vec = noise_vec.unsqueeze(1).expand(-1, time_steps, -1)
+        noise_vec = self.noise_embedding(noise_id).unsqueeze(1)
         
-        encoder_outputs_combined = torch.cat((encoder_outputs, noise_vec), dim=-1)
+        encoder_outputs = encoder_outputs + noise_vec
         # --------------------------------------------------
 
         mel_outputs, gate_outputs, alignments, mel_lengths = self.decoder.infer(
-            encoder_outputs_combined, input_lengths)
+            encoder_outputs, input_lengths)
 
         mel_outputs_postnet = self.postnet(mel_outputs)
         mel_outputs_postnet = mel_outputs + mel_outputs_postnet
