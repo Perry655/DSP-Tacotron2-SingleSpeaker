@@ -145,22 +145,34 @@ def load_and_setup_model(model_name, parser, checkpoint, fp16_run, cpu_run,
                              jittable=jittable)
 
     if checkpoint is not None:
+        # 1. Load the full checkpoint dictionary
         if cpu_run:
-            state_dict = torch.load(checkpoint, map_location=torch.device('cpu'))['state_dict']
+            checkpoint_data = torch.load(checkpoint, map_location=torch.device('cpu'))
         else:
-            #state_dict = torch.load(checkpoint)['state_dict']
-            state_dict = torch.load(checkpoint, weights_only=False)['state_dict']
+            checkpoint_data = torch.load(checkpoint, weights_only=False)
+        
+        # 2. Extract the weights based on the model type
+        if 'generator' in checkpoint_data:
+            state_dict = checkpoint_data['generator']
+        elif 'state_dict' in checkpoint_data:
+            state_dict = checkpoint_data['state_dict']
+        else:
+            # Fallback: if no keys match, assume the dict IS the state_dict
+            state_dict = checkpoint_data
+
+        # 3. Handle Distributed training unwrapping
         if checkpoint_from_distributed(state_dict):
             state_dict = unwrap_distributed(state_dict)
         
+        # 4. Load the weights into the model structure
         model.load_state_dict(state_dict)
         
+        # 5. Handle Model-Specific Cleanups
         if model_name == "HiFi-GAN":
-            # We remove weight norm BEFORE loading weights because 
-            # the checkpoint weights are already collapsed/fused.
+            # We remove weight norm because the checkpoint weights are already fused
             model.remove_weight_norm()
 
-    if model_name == "WaveGlow":# change vocoder
+    if model_name == "WaveGlow":
         model = model.remove_weightnorm(model)
 
     model.eval()
