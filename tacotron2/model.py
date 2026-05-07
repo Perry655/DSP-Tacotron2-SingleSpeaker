@@ -426,7 +426,7 @@ class Decoder(nn.Module):
             attention_hidden, memory, processed_memory,
             attention_weights_cat, mask)
 
-        attention_weights_cum += attention_weights
+        attention_weights_cum = attention_weights_cum + attention_weights
         decoder_input = torch.cat(
             (attention_hidden, attention_context), -1)
 
@@ -677,9 +677,9 @@ class Tacotron2(nn.Module):
             mask = mask.expand(self.n_mel_channels, mask.size(0), mask.size(1))
             mask = mask.permute(1, 0, 2)
 
-            outputs[0].masked_fill_(mask, 0.0)
-            outputs[1].masked_fill_(mask, 0.0)
-            outputs[2].masked_fill_(mask[:, 0, :], 1e3)  # gate energies
+            outputs[0] = outputs[0].masked_fill(mask, 0.0)
+            outputs[1] = outputs[1].masked_fill(mask, 0.0)
+            outputs[2] = outputs[2].masked_fill(mask[:, 0, :], 1e3) # gate energies
 
         return outputs
 
