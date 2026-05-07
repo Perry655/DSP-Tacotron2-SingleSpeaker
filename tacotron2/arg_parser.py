@@ -71,8 +71,8 @@ def tacotron2_parser(parent, add_help=False):
                          help='Number of ReLU units in prenet layers')
     decoder.add_argument('--max-decoder-steps', default=2000, type=int,
                          help='Maximum number of output mel spectrograms')
-    #decoder.add_argument('--gate-threshold', default=0.5, type=float,
-    #                     help='Probability threshold for stop token')
+    decoder.add_argument('--gate-threshold', default=0.5, type=float,
+                         help='Probability threshold for stop token')
     decoder.add_argument('--p-attention-dropout', default=0.1, type=float,
                          help='Dropout probability for attention LSTM')
     decoder.add_argument('--p-decoder-dropout', default=0.1, type=float,
